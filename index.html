@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1A3A6B">
+<title>Family Daily Checklist</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sam:        #3A7BD5;
+  --sam-light:  #E8F1FC;
+  --sam-mid:    #A8C8F0;
+  --ping:       #D4548A;
+  --ping-light: #FCE8F2;
+  --ping-mid:   #F0A8C8;
+  --soma:       #3AAD72;
+  --soma-light: #E8F7EF;
+  --soma-mid:   #A8DFC0;
+  --bg:         #F2EFE9;
+  --card:       #FFFFFF;
+  --text:       #1E1C19;
+  --muted:      #8A8480;
+  --border:     #E2DDD6;
+  --radius:     18px;
+  --shadow:     0 2px 16px rgba(0,0,0,0.07);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { scroll-behavior: smooth; }
+body {
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; padding-bottom:90px;
+  /* prevent overscroll bounce on iOS */
+  overscroll-behavior:none;
+}
+
+/* ── HEADER ─────────────────────────────────── */
+.header {
+  padding:env(safe-area-inset-top,20px) 20px 46px;
+  padding-top:calc(env(safe-area-inset-top,0px) + 28px);
+  background:linear-gradient(150deg,#1A3A6B 0%,#3A7BD5 38%,#D4548A 72%,#3AAD72 100%);
+  position:relative; overflow:hidden; text-align:center;
+}
+.header::after {
+  content:''; position:absolute; bottom:-1px; left:0; right:0;
+  height:28px; background:var(--bg); border-radius:28px 28px 0 0;
+}
+.hdr-dots {
+  position:absolute; inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,0.13) 1px,transparent 1px);
+  background-size:22px 22px;
+}
+.header h1 {
+  font-family:'Nunito',sans-serif; font-size:22px; font-weight:900;
+  color:#fff; position:relative;
+}
+.header .tagline { font-size:12px; color:rgba(255,255,255,0.82); position:relative; margin-top:3px; }
+.date-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.36);
+  border-radius:20px; padding:5px 14px;
+  font-size:12px; font-weight:700; color:#fff;
+  margin-top:12px; position:relative;
+}
+
+/* ── SYNC STATUS BANNER ─────────────────────── */
+.sync-banner {
+  display:flex; align-items:center; gap:8px;
+  padding:9px 16px;
+  font-size:12px; font-weight:600;
+  background:var(--card); border-bottom:1px solid var(--border);
+  min-height:36px;
+}
+.sync-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+  background:var(--border);
+  transition:background 0.3s;
+}
+.sync-dot.loading { background:#F59E0B; animation:pulse 1s infinite; }
+.sync-dot.live    { background:#22C55E; }
+.sync-dot.offline { background:#EF4444; }
+.sync-dot.saving  { background:#3B82F6; animation:pulse 0.6s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.sync-msg { flex:1; color:var(--muted); }
+.sync-msg.err { color:#DC2626; }
+.btn-refresh {
+  padding:5px 12px; border:1px solid var(--border); border-radius:8px;
+  background:var(--bg); font-family:'Nunito',sans-serif; font-weight:700;
+  font-size:11px; color:var(--muted); cursor:pointer; transition:all 0.15s;
+  white-space:nowrap;
+}
+.btn-refresh:hover { background:var(--border); }
+.btn-refresh:disabled { opacity:0.4; cursor:default; }
+
+/* ── TABS ───────────────────────────────────── */
+.tabs-wrap { padding:0 12px; margin-top:-4px; }
+.tabs {
+  display:flex; gap:6px; background:var(--card);
+  border-radius:var(--radius); padding:7px; box-shadow:var(--shadow);
+}
+.tab {
+  flex:1; border:none; background:transparent; border-radius:12px;
+  padding:9px 4px; cursor:pointer;
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:12px;
+  transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:2px;
+  color:var(--muted); touch-action:manipulation;
+}
+.tab .t-emoji { font-size:20px; line-height:1; }
+.tab .t-grade {
+  font-size:9px; font-weight:700; padding:2px 6px; border-radius:7px;
+  color:rgba(0,0,0,0.35); background:var(--border); transition:all 0.2s; white-space:nowrap;
+}
+.tab.active-sam  { background:var(--sam-light);  color:var(--sam);  }
+.tab.active-ping { background:var(--ping-light); color:var(--ping); }
+.tab.active-soma { background:var(--soma-light); color:var(--soma); }
+.tab.active-sam  .t-grade { background:var(--sam);  color:#fff; }
+.tab.active-ping .t-grade { background:var(--ping); color:#fff; }
+.tab.active-soma .t-grade { background:var(--soma); color:#fff; }
+
+/* ── PROGRESS STRIP ─────────────────────────── */
+.progress-strip { display:flex; gap:8px; padding:11px 12px 0; }
+.prog-card {
+  flex:1; background:var(--card); border-radius:12px;
+  padding:9px 10px; box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.prog-card .pc-name { font-size:10px; font-weight:600; color:var(--muted); }
+.prog-bar { height:5px; background:var(--border); border-radius:3px; margin:5px 0 3px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:3px; transition:width 0.5s cubic-bezier(.4,0,.2,1); width:0%; }
+.pf-sam  { background:var(--sam); }
+.pf-ping { background:var(--ping); }
+.pf-soma { background:var(--soma); }
+.prog-card .pc-pct { font-size:13px; font-weight:800; font-family:'Nunito',sans-serif; }
+
+/* ── CONTENT ────────────────────────────────── */
+.content { padding:12px; }
+.child-panel { display:none; }
+.child-panel.active { display:block; }
+
+/* ── AGE BANNER ──────────────────────────────── */
+.age-banner {
+  margin:0 0 10px; padding:8px 13px;
+  background:var(--card); border-radius:11px;
+  font-size:11px; font-weight:600; color:var(--muted);
+  box-shadow:0 1px 6px rgba(0,0,0,0.05);
+  display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+}
+.age-banner strong { font-weight:800; color:var(--text); }
+
+/* ── SECTION ────────────────────────────────── */
+.section {
+  background:var(--card); border-radius:var(--radius);
+  margin-bottom:11px; overflow:hidden; box-shadow:var(--shadow);
+}
+.sec-header {
+  display:flex; align-items:center; gap:10px;
+  padding:13px 15px; cursor:pointer; user-select:none;
+  border-left:4px solid transparent; transition:background 0.15s;
+  touch-action:manipulation;
+}
+.sec-header:active { background:#F5F5F5; }
+.sec-icon  { font-size:18px; }
+.sec-title { font-family:'Nunito',sans-serif; font-weight:800; font-size:13px; flex:1; }
+.sec-count {
+  font-size:10px; font-weight:700; padding:3px 8px; border-radius:18px;
+  background:var(--border); color:var(--muted); transition:all 0.2s;
+}
+.sec-chevron { font-size:10px; color:var(--muted); transition:transform 0.2s; margin-left:3px; }
+.section.collapsed .sec-chevron { transform:rotate(-90deg); }
+.section.collapsed .sec-body { display:none; }
+.sec-body { border-top:1px solid var(--border); }
+
+/* ── TASK ITEM ───────────────────────────────── */
+.task-item {
+  display:flex; align-items:center; gap:11px;
+  padding:13px 15px; border-bottom:1px solid var(--border);
+  cursor:pointer; transition:background 0.1s;
+  touch-action:manipulation; min-height:52px;
+}
+.task-item:last-child { border-bottom:none; }
+.task-item:active { background:#F5F5F5; }
+.task-item.done { opacity:0.58; }
+.task-item.done .t-label { text-decoration:line-through; color:var(--muted); }
+
+/* saving indicator on task */
+.task-item.saving { opacity:0.75; }
+.task-item.saving .chk { animation:pulse 0.5s infinite; }
+
+.chk {
+  width:28px; height:28px; flex-shrink:0; border-radius:9px;
+  border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; font-weight:900; color:#fff; transition:all 0.18s;
+}
+.task-item.done .chk { border-color:transparent; }
+.t-info { flex:1; min-width:0; }
+.t-label { font-size:14px; font-weight:600; line-height:1.3; }
+.t-sub   { font-size:11px; color:var(--muted); margin-top:2px; font-weight:500; }
+.note-btn {
+  width:32px; height:32px; flex-shrink:0; border:none;
+  background:var(--bg); border-radius:9px; cursor:pointer;
+  font-size:14px; color:var(--muted); transition:all 0.15s;
+  display:flex; align-items:center; justify-content:center;
+  touch-action:manipulation;
+}
+.note-btn:active { background:var(--border); }
+
+/* colour per child */
+.child-panel[data-child="sam"]  .chk { border-color:var(--sam-mid); }
+.child-panel[data-child="ping"] .chk { border-color:var(--ping-mid); }
+.child-panel[data-child="soma"] .chk { border-color:var(--soma-mid); }
+.child-panel[data-child="sam"]  .task-item.done .chk { background:var(--sam); }
+.child-panel[data-child="ping"] .task-item.done .chk { background:var(--ping); }
+.child-panel[data-child="soma"] .task-item.done .chk { background:var(--soma); }
+.child-panel[data-child="sam"]  .sec-header { border-left-color:var(--sam); }
+.child-panel[data-child="ping"] .sec-header { border-left-color:var(--ping); }
+.child-panel[data-child="soma"] .sec-header { border-left-color:var(--soma); }
+.child-panel[data-child="sam"]  .sec-count.all-done { background:var(--sam);  color:#fff; }
+.child-panel[data-child="ping"] .sec-count.all-done { background:var(--ping); color:#fff; }
+.child-panel[data-child="soma"] .sec-count.all-done { background:var(--soma); color:#fff; }
+
+/* ── NOTE MODAL ──────────────────────────────── */
+.overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.5); z-index:300;
+  align-items:flex-end; justify-content:center;
+}
+.overlay.open { display:flex; }
+.modal {
+  background:var(--card); width:100%; max-width:500px;
+  border-radius:22px 22px 0 0;
+  padding:22px 18px calc(env(safe-area-inset-bottom,0px) + 24px);
+  box-shadow:0 -8px 40px rgba(0,0,0,0.2);
+}
+.modal h3 { font-family:'Nunito',sans-serif; font-weight:800; font-size:15px; margin-bottom:11px; }
+.modal textarea {
+  width:100%; height:88px; resize:none;
+  border:2px solid var(--border); border-radius:12px;
+  padding:11px; font-family:'DM Sans',sans-serif;
+  font-size:14px; outline:none; color:var(--text); transition:border-color 0.15s;
+}
+.modal textarea:focus { border-color:var(--sam); }
+.modal-btns { display:flex; gap:10px; margin-top:11px; }
+.mbtn {
+  flex:1; padding:13px; border:none; border-radius:12px;
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:14px;
+  cursor:pointer; touch-action:manipulation;
+}
+.mbtn-cancel { background:var(--bg); color:var(--muted); }
+.mbtn-save   { background:var(--sam); color:#fff; }
+
+/* ── SETTINGS SHEET ──────────────────────────── */
+.settings-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.5); z-index:300;
+  align-items:flex-end; justify-content:center;
+}
+.settings-overlay.open { display:flex; }
+.settings-sheet {
+  background:var(--card); width:100%; max-width:500px;
+  border-radius:22px 22px 0 0;
+  padding:22px 18px calc(env(safe-area-inset-bottom,0px) + 24px);
+  box-shadow:0 -8px 40px rgba(0,0,0,0.2);
+}
+.settings-sheet h3 { font-family:'Nunito',sans-serif; font-weight:900; font-size:16px; margin-bottom:4px; }
+.settings-sheet p  { font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5; }
+.s-row { margin-bottom:12px; }
+.s-row label { font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px; }
+.s-row input {
+  width:100%; padding:11px 13px; border:1.5px solid var(--border);
+  border-radius:11px; font-family:'DM Sans',sans-serif;
+  font-size:13px; outline:none; color:var(--text); transition:border-color 0.15s;
+}
+.s-row input:focus { border-color:var(--sam); }
+.btn-save-settings {
+  width:100%; padding:14px; border:none; border-radius:13px; margin-top:4px;
+  background:linear-gradient(130deg,var(--sam),var(--soma)); color:#fff;
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:15px;
+  cursor:pointer; touch-action:manipulation;
+}
+.settings-hint {
+  font-size:11px; color:var(--muted); margin-top:12px; line-height:1.6;
+  background:var(--bg); border-radius:10px; padding:10px 12px;
+}
+.settings-hint b { color:var(--text); }
+
+/* ── BOTTOM BAR ──────────────────────────────── */
+.bottom-bar {
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--card); border-top:1px solid var(--border);
+  padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 10px);
+  display:flex; gap:8px; align-items:center;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.07); z-index:100;
+}
+.bbtn {
+  padding:11px 14px; border:none; border-radius:11px;
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:13px;
+  cursor:pointer; transition:opacity 0.2s; touch-action:manipulation;
+  white-space:nowrap;
+}
+.bbtn:active { opacity:0.7; }
+.bbtn:disabled { opacity:0.35; cursor:default; }
+.bbtn-settings { background:var(--bg); color:var(--muted); border:1px solid var(--border); }
+.bbtn-reset    { background:var(--bg); color:var(--muted); border:1px solid var(--border); }
+.bbtn-sync     { flex:1; background:linear-gradient(130deg,var(--sam),var(--soma)); color:#fff; }
+
+/* ── LOADING SCREEN ──────────────────────────── */
+.loading-screen {
+  position:fixed; inset:0; background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  z-index:500; gap:16px; transition:opacity 0.4s;
+}
+.loading-screen.hidden { opacity:0; pointer-events:none; }
+.loading-spinner {
+  width:44px; height:44px; border-radius:50%;
+  border:3px solid var(--border); border-top-color:var(--sam);
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.loading-text { font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; color:var(--muted); }
+
+/* ── NO-SCRIPT SETUP SCREEN ──────────────────── */
+.setup-screen {
+  display:none; padding:24px 18px;
+  text-align:center;
+}
+.setup-screen h2 { font-family:'Nunito',sans-serif; font-weight:900; font-size:20px; margin-bottom:8px; }
+.setup-screen p  { font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.6; }
+.btn-open-settings {
+  padding:14px 28px; border:none; border-radius:13px;
+  background:linear-gradient(130deg,var(--sam),var(--soma)); color:#fff;
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:15px;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loadingText">Loading today's checklist…</div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="hdr-dots"></div>
+  <h1>🌟 Family Daily Checklist</h1>
+  <div class="tagline">Sam · PingPing · Soma</div>
+  <div class="date-pill">📅 <span id="todayLabel">—</span></div>
+</div>
+
+<!-- Sync status banner -->
+<div class="sync-banner">
+  <div class="sync-dot" id="syncDot"></div>
+  <div class="sync-msg" id="syncMsg">Connecting…</div>
+  <button class="btn-refresh" id="btnRefresh" onclick="loadFromSheets()" disabled>↺ Refresh</button>
+</div>
+
+<!-- Tabs -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab" id="tab-sam"  onclick="switchChild('sam')">
+      <span class="t-emoji">👦</span>
+      <span class="t-name">Sam</span>
+      <span class="t-grade" id="grade-sam">—</span>
+    </button>
+    <button class="tab" id="tab-ping" onclick="switchChild('ping')">
+      <span class="t-emoji">👧</span>
+      <span class="t-name">PingPing</span>
+      <span class="t-grade" id="grade-ping">—</span>
+    </button>
+    <button class="tab" id="tab-soma" onclick="switchChild('soma')">
+      <span class="t-emoji" id="emoji-soma">👶</span>
+      <span class="t-name">Soma</span>
+      <span class="t-grade" id="grade-soma">—</span>
+    </button>
+  </div>
+</div>
+
+<!-- Progress strip -->
+<div class="progress-strip">
+  <div class="prog-card">
+    <div class="pc-name">Sam</div>
+    <div class="prog-bar"><div class="prog-fill pf-sam" id="pf-sam"></div></div>
+    <div class="pc-pct" id="pp-sam" style="color:var(--sam)">0%</div>
+  </div>
+  <div class="prog-card">
+    <div class="pc-name">PingPing</div>
+    <div class="prog-bar"><div class="prog-fill pf-ping" id="pf-ping"></div></div>
+    <div class="pc-pct" id="pp-ping" style="color:var(--ping)">0%</div>
+  </div>
+  <div class="prog-card">
+    <div class="pc-name">Soma</div>
+    <div class="prog-bar"><div class="prog-fill pf-soma" id="pf-soma"></div></div>
+    <div class="pc-pct" id="pp-soma" style="color:var(--soma)">0%</div>
+  </div>
+</div>
+
+<!-- Content panels -->
+<div class="content">
+  <div class="child-panel" id="panel-sam"  data-child="sam"></div>
+  <div class="child-panel" id="panel-ping" data-child="ping"></div>
+  <div class="child-panel" id="panel-soma" data-child="soma"></div>
+</div>
+
+<!-- Setup screen (shown when no URL configured) -->
+<div class="setup-screen" id="setupScreen">
+  <div style="font-size:48px;margin-bottom:8px">🔗</div>
+  <h2>Connect Google Sheets</h2>
+  <p>To sync between your phone and your wife's phone, you need to connect a Google Apps Script Web App.</p>
+  <button class="btn-open-settings" onclick="openSettings()">⚙️ Open Settings</button>
+</div>
+
+<!-- Note modal -->
+<div class="overlay" id="noteOverlay">
+  <div class="modal">
+    <h3 id="noteTitle">📝 Note</h3>
+    <textarea id="noteText" placeholder="Add a note for this task…"></textarea>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-cancel" onclick="closeNote()">Cancel</button>
+      <button class="mbtn mbtn-save"   onclick="saveNote()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings sheet -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-sheet">
+    <h3>⚙️ Google Sheets Settings</h3>
+    <p>Both your phone and your wife's phone must use the <b>same URL</b> to stay in sync.</p>
+    <div class="s-row">
+      <label>Google Apps Script URL</label>
+      <input id="gasUrl" type="url" inputmode="url"
+        placeholder="https://script.google.com/macros/s/…/exec">
+    </div>
+    <div class="s-row">
+      <label>Sheet Tab Name</label>
+      <input id="sheetName" type="text" value="ChildChecklist">
+    </div>
+    <button class="btn-save-settings" onclick="saveSettings()">Save & Connect</button>
+    <div class="settings-hint">
+      <b>How to get the URL:</b><br>
+      1. Open <b>script.google.com</b> → paste ChildChecklist_GAS.js<br>
+      2. Deploy → New Deployment → Web App<br>
+      3. Execute as: <b>Me</b> · Access: <b>Anyone</b><br>
+      4. Copy the URL and paste above
+    </div>
+  </div>
+</div>
+
+<!-- Bottom bar -->
+<div class="bottom-bar">
+  <button class="bbtn bbtn-settings" onclick="openSettings()">⚙️</button>
+  <button class="bbtn bbtn-reset"    onclick="resetDay()">↺ Reset</button>
+  <button class="bbtn bbtn-sync" id="btnSync" onclick="pushToSheets(true)">☁ Save & Sync</button>
+</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════════
+//  CHILD REGISTRY
+//  gradeAnchor2024 = their grade number in school year 2024-25
+//    Grade 1=1, KG Upper=0, KG Intermediate=-1, Nursery=-2, Infant=-99
+// ═══════════════════════════════════════════════════════════════
+const KIDS = {
+  sam:  { name:'Sam',      dob:'2019-12-06', sex:'M', gradeAnchor2024:  1  },
+  ping: { name:'PingPing', dob:'2021-09-06', sex:'F', gradeAnchor2024: -1  },
+  soma: { name:'Soma',     dob:'2024-06-24', sex:'F', gradeAnchor2024: -99 },
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  AGE & SCHOOL STAGE
+// ═══════════════════════════════════════════════════════════════
+function calcAge(dob) {
+  const b=new Date(dob), t=new Date();
+  let a=t.getFullYear()-b.getFullYear();
+  if(t.getMonth()<b.getMonth()||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))a--;
+  return a;
+}
+function currentSchoolYear() {
+  const d=new Date();
+  return d.getMonth()>=9 ? d.getFullYear() : d.getFullYear()-1;
+}
+function getStage(child) {
+  const kid=KIDS[child];
+  const g=kid.gradeAnchor2024+(currentSchoolYear()-2024);
+  if(g<=-3) return {label:'Infant/Toddler', key:'infant'};
+  if(g===-2) return {label:'Nursery',        key:'nursery'};
+  if(g===-1) return {label:'KG Intermediate',key:'kg_mid'};
+  if(g===0)  return {label:'KG Upper',       key:'kg_up'};
+  return {label:'Grade '+Math.min(g,12), key:'gr'+Math.min(g,12)};
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TASK CATALOGUE
+// ═══════════════════════════════════════════════════════════════
+function buildSections(key) {
+  if(key==='infant') return [
+    {id:'morn',icon:'🌅',title:'Morning Care',tasks:[
+      {id:'diaper1',label:'Diaper check & change',sub:''},
+      {id:'feed1',  label:'Morning milk / breastfeed',sub:''},
+      {id:'bath',   label:'Morning bath or wipe-down',sub:''},
+      {id:'dress',  label:'Dress for the day',sub:''},
+      {id:'tummy',  label:'Tummy time / floor play',sub:'15–20 min'},
+    ]},
+    {id:'day',icon:'☀️',title:'Daytime Routine',tasks:[
+      {id:'feed2',  label:'Mid-morning feeding',sub:''},
+      {id:'nap1',   label:'Morning nap',sub:'1–2 hours'},
+      {id:'lunch',  label:'Solid foods / puree lunch',sub:'Age-appropriate'},
+      {id:'play',   label:'Sensory play & talking',sub:'Sing, read, name objects'},
+      {id:'nap2',   label:'Afternoon nap',sub:'1–2 hours'},
+    ]},
+    {id:'health',icon:'💊',title:'Health & Development',tasks:[
+      {id:'vit',    label:'Vitamins / drops (if prescribed)',sub:''},
+      {id:'diaper2',label:'Diaper changes tracked',sub:'Note any rash'},
+      {id:'motor',  label:'Motor skill practice',sub:'Crawling, standing, walking'},
+      {id:'talk',   label:'Verbal stimulation',sub:'Talk, name objects, respond to sounds'},
+    ]},
+    {id:'eve',icon:'🌙',title:'Evening & Bedtime',tasks:[
+      {id:'bath2',  label:'Evening bath',sub:'Warm, calm routine'},
+      {id:'feed3',  label:'Evening feeding',sub:''},
+      {id:'diaper3',label:'Clean diaper before sleep',sub:''},
+      {id:'bed',    label:'Settle for sleep',sub:'Dim lights, quiet by 7:30 PM'},
+    ]},
+  ];
+
+  if(key==='nursery') return [
+    {id:'morn',icon:'🌅',title:'Morning Routine',tasks:[
+      {id:'wake',     label:'Wake up on time',sub:'6:30–7:00 AM'},
+      {id:'toilet',   label:'Use toilet / potty',sub:'With help as needed'},
+      {id:'brush',    label:'Brush teeth',sub:'With parent help'},
+      {id:'bath',     label:'Wash face / bathe',sub:''},
+      {id:'dress',    label:'Get dressed',sub:'Practice putting on clothes'},
+      {id:'breakfast',label:'Eat breakfast',sub:'Finish main portion'},
+    ]},
+    {id:'learn',icon:'🎨',title:'Play & Learning',tasks:[
+      {id:'craft',  label:'Drawing or colouring',sub:'15–20 min'},
+      {id:'story',  label:'Story time with parent',sub:'1 book — talk about pictures'},
+      {id:'play',   label:'Active outdoor play',sub:''},
+      {id:'social', label:'Play with siblings / friends',sub:''},
+    ]},
+    {id:'aft',icon:'☀️',title:'Afternoon',tasks:[
+      {id:'nap',    label:'Nap or quiet rest',sub:'45–60 min'},
+      {id:'snack',  label:'Healthy snack',sub:''},
+      {id:'screen', label:'Screen time (limited)',sub:'Max 45 min — educational only'},
+    ]},
+    {id:'eve',icon:'🌙',title:'Evening Routine',tasks:[
+      {id:'dinner', label:'Eat dinner together',sub:''},
+      {id:'bath2',  label:'Bathe',sub:''},
+      {id:'brush2', label:'Brush teeth — night',sub:'2 min with parent'},
+      {id:'story2', label:'Bedtime story',sub:'1 book before lights out'},
+      {id:'bed',    label:'In bed / lights out',sub:'8:00 PM'},
+    ]},
+  ];
+
+  if(key==='kg_mid') return [
+    {id:'morn',icon:'🌅',title:'Morning Routine',tasks:[
+      {id:'wake',     label:'Wake up on time',sub:'6:30 AM'},
+      {id:'toilet',   label:'Use toilet',sub:'With guidance'},
+      {id:'brush',    label:'Brush teeth',sub:'With parent help'},
+      {id:'bath',     label:'Bathe / wash face',sub:''},
+      {id:'dress',    label:'Get dressed',sub:'With some help'},
+      {id:'breakfast',label:'Eat breakfast',sub:'Finish full portion'},
+      {id:'bag',      label:'School bag ready',sub:'Snack, water, book'},
+    ]},
+    {id:'learn',icon:'🎒',title:'Learning Activities',tasks:[
+      {id:'abc',    label:'Recognise & trace letters A–Z',sub:''},
+      {id:'num',    label:'Count and recognise 1–10',sub:'Use fingers and objects'},
+      {id:'story',  label:'Reading time with parent',sub:'1 book — take turns pointing'},
+      {id:'craft',  label:'Creative activity',sub:'Drawing, colouring, crafts'},
+      {id:'share',  label:'Tell parents about school today',sub:'Encourage full sentences'},
+    ]},
+    {id:'aft',icon:'☀️',title:'Afternoon',tasks:[
+      {id:'snack',  label:'Healthy after-school snack',sub:''},
+      {id:'rest',   label:'Rest or nap',sub:'30–45 min'},
+      {id:'play',   label:'Active / outdoor play',sub:''},
+      {id:'screen', label:'Screen time (limited)',sub:'Max 1 hr — educational'},
+    ]},
+    {id:'eve',icon:'🌙',title:'Evening Routine',tasks:[
+      {id:'dinner', label:'Eat dinner',sub:'Finish vegetables too'},
+      {id:'bath2',  label:'Bathe before bed',sub:''},
+      {id:'brush2', label:'Brush teeth — night',sub:'2 min'},
+      {id:'story2', label:'Bedtime story',sub:'1 book'},
+      {id:'bed',    label:'In bed / lights out',sub:'8:00 PM'},
+    ]},
+  ];
+
+  if(key==='kg_up') return [
+    {id:'morn',icon:'🌅',title:'Morning Routine',tasks:[
+      {id:'wake',     label:'Wake up on time',sub:'6:00–6:30 AM'},
+      {id:'hygiene',  label:'Toilet, brush teeth, wash face',sub:'Increasingly independent'},
+      {id:'bath',     label:'Shower',sub:''},
+      {id:'dress',    label:'Dress independently',sub:'Uniform if required'},
+      {id:'breakfast',label:'Eat breakfast',sub:'Finish before leaving'},
+      {id:'bag',      label:'School bag checked',sub:'Books, snack, water'},
+    ]},
+    {id:'learn',icon:'🎒',title:'School & Learning',tasks:[
+      {id:'hw',      label:'KG homework / worksheet',sub:'Parent checks and signs'},
+      {id:'reading', label:'Reading practice — 10 min',sub:'Khmer or English'},
+      {id:'writing', label:'Writing practice',sub:'Full words and short sentences'},
+      {id:'share',   label:'Tell parents about school',sub:'What did you learn today?'},
+    ]},
+    {id:'aft',icon:'☀️',title:'Afternoon',tasks:[
+      {id:'snack',  label:'Healthy after-school snack',sub:''},
+      {id:'rest',   label:'Quiet rest time',sub:'30 min'},
+      {id:'play',   label:'Active / outdoor play',sub:''},
+      {id:'screen', label:'Screen time (limited)',sub:'Max 1 hr — after homework done'},
+    ]},
+    {id:'eve',icon:'🌙',title:'Evening Routine',tasks:[
+      {id:'dinner', label:'Family dinner',sub:''},
+      {id:'bath2',  label:'Bathe',sub:''},
+      {id:'brush2', label:'Brush teeth — night',sub:'2 min'},
+      {id:'bag2',   label:'Prepare bag for tomorrow',sub:''},
+      {id:'story',  label:'Bedtime story / reading',sub:''},
+      {id:'bed',    label:'In bed / lights out',sub:'8:00–8:30 PM'},
+    ]},
+  ];
+
+  if(key==='gr1') return [
+    {id:'morn',icon:'🌅',title:'Morning Routine',tasks:[
+      {id:'wake',     label:'Wake up on time',sub:'6:00 AM'},
+      {id:'toilet',   label:'Toilet & wash hands',sub:''},
+      {id:'brush',    label:'Brush teeth — morning',sub:''},
+      {id:'bath',     label:'Shower',sub:''},
+      {id:'dress',    label:'Dress in uniform',sub:'Laid out the night before'},
+      {id:'breakfast',label:'Eat breakfast',sub:'Finish before leaving'},
+      {id:'bag',      label:'Check school bag',sub:'Books, pencil case, water, snack'},
+    ]},
+    {id:'school',icon:'🎒',title:'School & Homework',tasks:[
+      {id:'hw',      label:'Homework completed',sub:'Check together with parent'},
+      {id:'reading', label:'Reading — 10 min',sub:'Khmer or English book'},
+      {id:'writing', label:'Writing / copying practice',sub:''},
+      {id:'diary',   label:'School diary / notes returned',sub:'Parent signs if needed'},
+      {id:'share',   label:'Tell parents about school today',sub:''},
+    ]},
+    {id:'aft',icon:'☀️',title:'Afternoon',tasks:[
+      {id:'snack',  label:'Healthy after-school snack',sub:''},
+      {id:'rest',   label:'Rest / quiet time',sub:'30 min'},
+      {id:'play',   label:'Active / outdoor play',sub:''},
+      {id:'screen', label:'Screen time (limited)',sub:'Max 1 hr — homework first'},
+    ]},
+    {id:'eve',icon:'🌙',title:'Evening Routine',tasks:[
+      {id:'dinner', label:'Family dinner',sub:''},
+      {id:'hw2',    label:'Finish / review homework',sub:''},
+      {id:'bath2',  label:'Bathe',sub:''},
+      {id:'brush2', label:'Brush teeth — night',sub:''},
+      {id:'bag2',   label:'Prepare bag for tomorrow',sub:''},
+      {id:'bed',    label:'In bed / lights out',sub:'8:30 PM'},
+    ]},
+  ];
+
+  if(key==='gr2') return [
+    {id:'morn',icon:'🌅',title:'Morning Routine',tasks:[
+      {id:'wake',     label:'Wake up independently',sub:'6:00 AM'},
+      {id:'hygiene',  label:'Toilet, brush teeth, wash face',sub:'Self-care routine'},
+      {id:'bath',     label:'Shower',sub:''},
+      {id:'dress',    label:'Dress in uniform',sub:'Independently'},
+      {id:'breakfast',label:'Eat breakfast',sub:''},
+      {id:'bag',      label:'Check school bag',sub:'Books, pencil case, water'},
+    ]},
+    {id:'school',icon:'🎒',title:'School & Homework',tasks:[
+      {id:'hw',      label:'All homework completed',sub:'All subjects checked'},
+      {id:'reading', label:'Reading — 15 min',sub:'Khmer or English'},
+      {id:'review',  label:'Review today\'s lessons',sub:'10 min recap'},
+      {id:'diary',   label:'School diary returned',sub:'Signed if needed'},
+    ]},
+    {id:'aft',icon:'☀️',title:'Afternoon',tasks:[
+      {id:'snack',  label:'Healthy snack after school',sub:''},
+      {id:'rest',   label:'Rest time',sub:'30 min'},
+      {id:'play',   label:'Active / outdoor play',sub:''},
+      {id:'screen', label:'Screen time (limited)',sub:'Max 1 hr — homework first'},
+    ]},
+    {id:'eve',icon:'🌙',title:'Evening Routine',tasks:[
+      {id:'dinner', label:'Family dinner',sub:''},
+      {id:'hw2',    label:'Finish / review homework',sub:''},
+      {id:'bath2',  label:'Bathe',sub:''},
+      {id:'brush2', label:'Brush teeth — night',sub:''},
+      {id:'bag2',   label:'Prepare bag for tomorrow',sub:''},
+      {id:'bed',    label:'In bed / lights out',sub:'8:30–9:00 PM'},
+    ]},
+  ];
+
+  if(key==='gr3') return [
+    {id:'morn',icon:'🌅',title:'Morning Routine',tasks:[
+      {id:'wake',     label:'Wake up independently',sub:'5:50–6:00 AM'},
+      {id:'hygiene',  label:'Full self-care routine',sub:'Shower, brush teeth, dress'},
+      {id:'breakfast',label:'Eat breakfast',sub:''},
+      {id:'bag',      label:'Check school bag & timetable',sub:''},
+    ]},
+    {id:'school',icon:'🎒',title:'Academics',tasks:[
+      {id:'hw',      label:'All homework completed',sub:'Multiple subjects'},
+      {id:'reading', label:'Independent reading — 15 min',sub:''},
+      {id:'review',  label:'Review today\'s lessons',sub:'10–15 min'},
+      {id:'diary',   label:'Planner / diary updated',sub:'Note tomorrow\'s tasks'},
+    ]},
+    {id:'aft',icon:'☀️',title:'Afternoon',tasks:[
+      {id:'snack',  label:'Healthy snack',sub:''},
+      {id:'rest',   label:'Rest / quiet time',sub:'20–30 min'},
+      {id:'play',   label:'Active play or sport',sub:''},
+      {id:'screen', label:'Screen time (limited)',sub:'Max 1 hr — after homework'},
+    ]},
+    {id:'eve',icon:'🌙',title:'Evening Routine',tasks:[
+      {id:'dinner',   label:'Family dinner',sub:''},
+      {id:'hw2',      label:'Finish homework / study',sub:''},
+      {id:'hygiene2', label:'Bathe & brush teeth',sub:''},
+      {id:'bag2',     label:'Prepare bag for tomorrow',sub:''},
+      {id:'bed',      label:'In bed / lights out',sub:'9:00 PM'},
+    ]},
+  ];
+
+  if(key==='gr4') return [
+    {id:'morn',icon:'🌅',title:'Morning Routine',tasks:[
+      {id:'wake',     label:'Wake up independently',sub:'5:45 AM'},
+      {id:'hygiene',  label:'Full self-care',sub:'Shower, brush teeth, dress'},
+      {id:'breakfast',label:'Eat breakfast',sub:''},
+      {id:'bag',      label:'Bag & materials ready',sub:'Timetable checked'},
+    ]},
+    {id:'school',icon:'📚',title:'Academics',tasks:[
+      {id:'hw',      label:'All homework completed',sub:'All subjects'},
+      {id:'reading', label:'Independent reading — 20 min',sub:''},
+      {id:'study',   label:'Study / revision session',sub:'Vocab, maths, upcoming tests'},
+      {id:'diary',   label:'Planner updated',sub:'Note due dates'},
+    ]},
+    {id:'aft',icon:'☀️',title:'Afternoon & Activities',tasks:[
+      {id:'snack',    label:'Healthy snack',sub:''},
+      {id:'activity', label:'Extra-curricular / sport',sub:''},
+      {id:'play',     label:'Free play or social time',sub:''},
+      {id:'screen',   label:'Screen time',sub:'Max 1.5 hr — after homework'},
+      {id:'chores',   label:'Household chore',sub:'Age-appropriate responsibility'},
+    ]},
+    {id:'eve',icon:'🌙',title:'Evening Routine',tasks:[
+      {id:'dinner',   label:'Family dinner',sub:''},
+      {id:'review',   label:'Review day\'s lessons',sub:'15 min'},
+      {id:'hygiene2', label:'Bathe & brush teeth',sub:''},
+      {id:'bag2',     label:'Prepare tomorrow\'s bag',sub:'Signed notes, timetable'},
+      {id:'bed',      label:'In bed / lights out',sub:'9:00–9:30 PM'},
+    ]},
+  ];
+
+  if(key==='gr5') return [
+    {id:'morn',icon:'🌅',title:'Morning Routine',tasks:[
+      {id:'wake',     label:'Wake up independently',sub:'5:45 AM'},
+      {id:'hygiene',  label:'Full self-care routine',sub:''},
+      {id:'breakfast',label:'Eat breakfast',sub:''},
+      {id:'bag',      label:'Bag & materials ready',sub:''},
+    ]},
+    {id:'school',icon:'📚',title:'Academics',tasks:[
+      {id:'hw',      label:'All homework completed',sub:''},
+      {id:'reading', label:'Reading — 20 min',sub:''},
+      {id:'study',   label:'Study / revision',sub:'Focus on weak subjects'},
+      {id:'project', label:'School project / assignment',sub:'Check due dates'},
+      {id:'diary',   label:'Planner updated',sub:''},
+    ]},
+    {id:'aft',icon:'☀️',title:'Afternoon',tasks:[
+      {id:'snack',    label:'Healthy snack',sub:''},
+      {id:'activity', label:'Sport / extra-curricular',sub:''},
+      {id:'screen',   label:'Screen time',sub:'Max 1.5 hr — homework first'},
+      {id:'chores',   label:'Household responsibility',sub:''},
+    ]},
+    {id:'eve',icon:'🌙',title:'Evening Routine',tasks:[
+      {id:'dinner',   label:'Family dinner',sub:''},
+      {id:'review',   label:'Lesson review',sub:'15 min'},
+      {id:'hygiene2', label:'Bathe & brush teeth',sub:''},
+      {id:'bag2',     label:'Prepare for tomorrow',sub:''},
+      {id:'bed',      label:'In bed',sub:'9:30 PM'},
+    ]},
+  ];
+
+  // gr6 and above (secondary)
+  return [
+    {id:'morn',icon:'🌅',title:'Morning Routine',tasks:[
+      {id:'wake',     label:'Wake up & self-care',sub:'Alarm, shower, uniform'},
+      {id:'breakfast',label:'Eat breakfast',sub:''},
+      {id:'bag',      label:'Materials & schedule ready',sub:''},
+    ]},
+    {id:'school',icon:'📚',title:'Academics',tasks:[
+      {id:'hw',      label:'All homework completed',sub:''},
+      {id:'study',   label:'Study session — 45 min',sub:''},
+      {id:'reading', label:'Reading — 20 min',sub:''},
+      {id:'planner', label:'Planner / agenda updated',sub:''},
+    ]},
+    {id:'aft',icon:'☀️',title:'Afternoon',tasks:[
+      {id:'activity', label:'Sport / extra-curricular',sub:''},
+      {id:'screen',   label:'Recreational screen time',sub:'Max 2 hr'},
+      {id:'chores',   label:'Household responsibility',sub:''},
+    ]},
+    {id:'eve',icon:'🌙',title:'Evening Routine',tasks:[
+      {id:'dinner',  label:'Family dinner',sub:''},
+      {id:'review',  label:'Lesson review',sub:''},
+      {id:'hygiene', label:'Bathe & brush teeth',sub:''},
+      {id:'bag2',    label:'Prepare for tomorrow',sub:''},
+      {id:'bed',     label:'In bed',sub:'9:30–10:00 PM'},
+    ]},
+  ];
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RUNTIME STATE
+// ═══════════════════════════════════════════════════════════════
+const TODAY_STR = new Date().toISOString().split('T')[0];
+// localStorage as offline cache ONLY — Sheets is the source of truth
+const CACHE_KEY = 'fam_cache_v4_' + TODAY_STR;
+
+let SECTIONS    = {};  // { child: [section,...] }
+let STATE       = {};  // { child: { taskId: { done, note } } }
+let activeChild = 'sam';
+let noteTarget  = null;
+let isSyncing   = false;
+let hasGasUrl   = false;
+
+// Debounce timer for auto-save
+let saveTimer   = null;
+
+// ── settings ──
+function getGasUrl()    { return localStorage.getItem('gas_url')   || ''; }
+function getSheetName() { return localStorage.getItem('gas_sheet') || 'ChildChecklist'; }
+
+// ── section/state init ──
+function initSections() {
+  for(const child of Object.keys(KIDS)) {
+    const {key} = getStage(child);
+    SECTIONS[child] = buildSections(key);
+  }
+}
+
+function blankState() {
+  const s={};
+  for(const child of Object.keys(KIDS)) {
+    s[child]={};
+    for(const sec of SECTIONS[child])
+      for(const t of sec.tasks)
+        s[child][t.id]={done:false,note:''};
+  }
+  return s;
+}
+
+function initState() {
+  const raw=localStorage.getItem(CACHE_KEY);
+  STATE = raw ? JSON.parse(raw) : blankState();
+  // Ensure all keys exist (in case sections changed)
+  for(const child of Object.keys(KIDS)) {
+    if(!STATE[child]) STATE[child]={};
+    for(const sec of SECTIONS[child])
+      for(const t of sec.tasks)
+        if(!STATE[child][t.id]) STATE[child][t.id]={done:false,note:''};
+  }
+}
+
+function cacheState() {
+  localStorage.setItem(CACHE_KEY, JSON.stringify(STATE));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GOOGLE SHEETS  —  LOAD (GET) & SAVE (POST)
+// ═══════════════════════════════════════════════════════════════
+
+// Load today's data from Sheets, merge into STATE
+async function loadFromSheets() {
+  const url = getGasUrl();
+  if(!url) { hideLoading(); showSetupScreen(); return; }
+
+  setSyncState('loading','Loading from Google Sheets…');
+  document.getElementById('btnRefresh').disabled = true;
+
+  try {
+    const sheetName = getSheetName();
+    const res = await fetch(`${url}?sheet=${encodeURIComponent(sheetName)}`, {
+      method:'GET', cache:'no-cache'
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+
+    if(json.status !== 'ok') throw new Error(json.message || 'Unknown error');
+
+    // Merge Sheets data into STATE
+    // Each row: { child, task, done, note }
+    // Match by child name + task label (since task IDs are local)
+    for(const row of json.rows) {
+      const child = Object.keys(KIDS).find(c => KIDS[c].name === row.child);
+      if(!child) continue;
+      const sec = SECTIONS[child].find(s => s.title === row.section);
+      if(!sec) continue;
+      const task = sec.tasks.find(t => t.label === row.task);
+      if(!task) continue;
+      STATE[child][task.id] = { done: row.done, note: row.note || '' };
+    }
+
+    cacheState();
+    renderAll();
+    const t = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    setSyncState('live', 'Synced at ' + t + ' — tap a task to update');
+  } catch(err) {
+    console.error('Load error:', err);
+    setSyncState('offline', 'Could not load — showing cached data. Tap ↺ to retry.');
+  }
+
+  document.getElementById('btnRefresh').disabled = false;
+  hideLoading();
+}
+
+// Push full state to Sheets
+// silent=true → no loading indicator (background auto-save)
+async function pushToSheets(showFeedback) {
+  const url = getGasUrl();
+  if(!url) { openSettings(); return; }
+  if(isSyncing) return;
+  isSyncing = true;
+
+  if(showFeedback) setSyncState('saving','Saving…');
+  document.getElementById('btnSync').disabled = true;
+
+  const now  = new Date().toLocaleString('en-GB');
+  const rows = [['Date','Child','School Stage','Section','Task','Done','Note','UpdatedAt']];
+
+  for(const [child, kid] of Object.entries(KIDS)) {
+    const {label} = getStage(child);
+    for(const sec of SECTIONS[child]) {
+      for(const t of sec.tasks) {
+        const s = STATE[child]?.[t.id] || {};
+        rows.push([TODAY_STR, kid.name, label, sec.title, t.label,
+                   s.done?'Yes':'No', s.note||'', now]);
+      }
+    }
+  }
+
+  try {
+    const res = await fetch(url, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ sheet: getSheetName(), rows })
+    });
+    // no-cors returns opaque response — we assume success if no throw
+    cacheState();
+    const t = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    setSyncState('live','Saved at '+t+' · both phones will see this');
+  } catch(err) {
+    setSyncState('offline','Save failed — check connection. Data kept locally.');
+  }
+
+  isSyncing = false;
+  document.getElementById('btnSync').disabled = false;
+}
+
+// Auto-save after a tap (debounced 1.5 s to batch rapid taps)
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => pushToSheets(false), 1500);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UI SYNC STATE
+// ═══════════════════════════════════════════════════════════════
+function setSyncState(state, msg) {
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncMsg');
+  dot.className = 'sync-dot ' + state;
+  txt.textContent = msg;
+  txt.className   = 'sync-msg' + (state==='offline' ? ' err' : '');
+}
+
+function hideLoading() {
+  document.getElementById('loadingScreen').classList.add('hidden');
+}
+
+function showSetupScreen() {
+  document.getElementById('setupScreen').style.display = 'block';
+  document.getElementById('loadingText').textContent   = 'Setup required';
+  setSyncState('offline','Not connected — tap ⚙️ to add Script URL');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════════════
+function renderTabs() {
+  for(const child of Object.keys(KIDS)) {
+    const {label} = getStage(child);
+    document.getElementById('grade-'+child).textContent = label;
+  }
+  document.getElementById('emoji-soma').textContent =
+    getStage('soma').key === 'infant' ? '👶' : '👧';
+}
+
+function renderPanel(child) {
+  const panel = document.getElementById('panel-'+child);
+  const age   = calcAge(KIDS[child].dob);
+  const {label} = getStage(child);
+
+  panel.innerHTML = `<div class="age-banner">
+    <strong>${KIDS[child].name}</strong> is <strong>${age} years old</strong>
+    &nbsp;·&nbsp; <strong>${label}</strong>
+  </div>`;
+
+  for(const sec of SECTIONS[child]) {
+    const dn  = sec.tasks.filter(t=>STATE[child]?.[t.id]?.done).length;
+    const tot = sec.tasks.length;
+    const el  = document.createElement('div');
+    el.className   = 'section';
+    el.dataset.secId = sec.id;
+    el.innerHTML = `
+      <div class="sec-header" onclick="toggleSec(this)">
+        <span class="sec-icon">${sec.icon}</span>
+        <span class="sec-title">${sec.title}</span>
+        <span class="sec-count${dn===tot?' all-done':''}">${dn}/${tot}</span>
+        <span class="sec-chevron">▾</span>
+      </div>
+      <div class="sec-body">${sec.tasks.map(t=>taskHTML(child,t)).join('')}</div>`;
+    panel.appendChild(el);
+  }
+}
+
+function taskHTML(child, task) {
+  const s = STATE[child]?.[task.id] || {done:false,note:''};
+  const noteSnip = s.note
+    ? ' · 📝 '+s.note.substring(0,36)+(s.note.length>36?'…':'') : '';
+  const subLine = (task.sub||noteSnip)
+    ? `<div class="t-sub">${task.sub}${noteSnip}</div>` : '';
+  const safeLabel = task.label.replace(/\\/g,'\\\\').replace(/'/g,'&#39;');
+  return `<div class="task-item${s.done?' done':''}" id="ti-${child}-${task.id}"
+    onclick="toggleTask('${child}','${task.id}')">
+  <div class="chk">${s.done?'✓':''}</div>
+  <div class="t-info"><div class="t-label">${task.label}</div>${subLine}</div>
+  <button class="note-btn"
+    onclick="event.stopPropagation();openNote('${child}','${task.id}','${safeLabel}')"
+    title="Note">✏️</button>
+</div>`;
+}
+
+function updateProgress(child) {
+  let tot=0,dn=0;
+  for(const sec of SECTIONS[child])
+    for(const t of sec.tasks){tot++;if(STATE[child]?.[t.id]?.done)dn++;}
+  const pct=tot?Math.round(dn/tot*100):0;
+  document.getElementById('pf-'+child).style.width=pct+'%';
+  document.getElementById('pp-'+child).textContent=pct+'%';
+}
+
+function renderAll() {
+  for(const child of Object.keys(KIDS)){renderPanel(child);updateProgress(child);}
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INTERACTIONS
+// ═══════════════════════════════════════════════════════════════
+function switchChild(child) {
+  activeChild=child;
+  for(const c of Object.keys(KIDS)) {
+    document.getElementById('tab-'+c).className='tab'+(c===child?' active-'+c:'');
+    document.getElementById('panel-'+c).classList.toggle('active',c===child);
+  }
+}
+
+function toggleSec(hdr) { hdr.closest('.section').classList.toggle('collapsed'); }
+
+function toggleTask(child, taskId) {
+  const s = STATE[child][taskId];
+  s.done = !s.done;
+  cacheState();
+
+  // Patch task row
+  const el   = document.getElementById('ti-'+child+'-'+taskId);
+  const task = SECTIONS[child].flatMap(s=>s.tasks).find(t=>t.id===taskId);
+  if(el&&task) el.outerHTML = taskHTML(child,task);
+
+  // Patch section counter
+  const panel = document.getElementById('panel-'+child);
+  for(const sec of SECTIONS[child]) {
+    if(!sec.tasks.find(t=>t.id===taskId)) continue;
+    const secEl = panel.querySelector('[data-sec-id="'+sec.id+'"]');
+    if(!secEl) continue;
+    const dn=sec.tasks.filter(t=>STATE[child]?.[t.id]?.done).length;
+    const tot=sec.tasks.length;
+    const cnt=secEl.querySelector('.sec-count');
+    cnt.textContent=dn+'/'+tot;
+    cnt.className='sec-count'+(dn===tot?' all-done':'');
+  }
+  updateProgress(child);
+  setSyncState('saving','Saving…');
+  scheduleSave(); // auto-save after 1.5 s
+}
+
+// ── Note modal ──
+function openNote(child, taskId, label) {
+  noteTarget={child,taskId};
+  const tmp=document.createElement('textarea');
+  tmp.innerHTML=label;
+  document.getElementById('noteTitle').textContent='📝 Note — '+tmp.value;
+  document.getElementById('noteText').value=STATE[child]?.[taskId]?.note||'';
+  document.getElementById('noteOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('noteText').focus(),80);
+}
+
+function closeNote() {
+  document.getElementById('noteOverlay').classList.remove('open');
+  noteTarget=null;
+}
+
+function saveNote() {
+  if(!noteTarget) return;
+  const {child,taskId}=noteTarget;
+  STATE[child][taskId].note=document.getElementById('noteText').value.trim();
+  cacheState();
+  closeNote();
+  const el   = document.getElementById('ti-'+child+'-'+taskId);
+  const task = SECTIONS[child].flatMap(s=>s.tasks).find(t=>t.id===taskId);
+  if(el&&task) el.outerHTML=taskHTML(child,task);
+  scheduleSave();
+}
+
+document.getElementById('noteOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('noteOverlay')) closeNote();
+});
+
+// ── Settings ──
+function openSettings() {
+  document.getElementById('gasUrl').value    = getGasUrl();
+  document.getElementById('sheetName').value = getSheetName();
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+}
+
+function saveSettings() {
+  const url   = document.getElementById('gasUrl').value.trim();
+  const sheet = document.getElementById('sheetName').value.trim()||'ChildChecklist';
+  localStorage.setItem('gas_url',   url);
+  localStorage.setItem('gas_sheet', sheet);
+  closeSettings();
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('loadingScreen').classList.remove('hidden');
+  document.getElementById('loadingText').textContent='Connecting…';
+  loadFromSheets();
+}
+
+document.getElementById('settingsOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('settingsOverlay')) closeSettings();
+});
+
+// ── Reset ──
+function resetDay() {
+  if(!confirm('Reset all checkmarks for today?\nNotes will be kept.')) return;
+  for(const child of Object.keys(KIDS))
+    for(const sec of SECTIONS[child])
+      for(const t of sec.tasks)
+        STATE[child][t.id]={done:false,note:STATE[child]?.[t.id]?.note||''};
+  cacheState();
+  renderAll();
+  setSyncState('saving','Resetting…');
+  pushToSheets(true);
+}
+
+// ── Page visibility: refresh when user returns to app ──
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState==='visible' && getGasUrl()) {
+    loadFromSheets();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+function init() {
+  // Date label
+  const d=new Date();
+  const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('todayLabel').textContent=
+    `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+
+  initSections();
+  initState();   // load cache so UI appears instantly
+  renderTabs();
+  renderAll();
+  switchChild('sam');
+
+  hasGasUrl = !!getGasUrl();
+
+  if(hasGasUrl) {
+    // Load from Sheets (will update STATE and re-render)
+    loadFromSheets();
+  } else {
+    hideLoading();
+    showSetupScreen();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
